@@ -1,0 +1,64 @@
+using Match, Statistics, Distributions, Random
+
+struct ActivationFunctions
+    ReLu
+    Sigmoid
+end
+
+mutable struct Layer
+    weights::Matrix{Float32}
+    biases::Array{Float32}
+end
+
+mutable struct Network
+    layers::Array{Layer}
+end
+
+function sigmoid(x::Float32)
+    return 1/(1+ℯ^(-x))
+end
+
+function relu(x::Float32)
+    return max(0,x)
+end
+
+function createLayer(neuronsInTheLayer,neuronsInPreviousLayer)
+    d = Normal()
+    weights::Matrix{Float32} = rand(d,(neuronsInPreviousLayer,neuronsInTheLayer))
+    biases::Array{Float32}  = rand(d,neuronsInTheLayer)
+    return Layer(weights,biases)
+end
+
+function createNetwork(numberOfLayers::Int,neuronsInLayers::Array{Int})
+    layers = Array{Union{Layer,Nothing}}(nothing,numberOfLayers)
+    for (layerNumber, layer) in enumerate(layers)
+        previousLayerNumber = layerNumber == 1 ?  neuronsInLayers[1] : neuronsInLayers[layerNumber-1]
+        layer = createLayer(neuronsInLayers[layerNumber],neuronsInLayers[previousLayerNumber])
+    end 
+    return Network(layers)
+end
+
+
+function forward(inputs::Array{Float32}, layer::Layer ,fun::ActivationFunctions) 
+    z = layer.weights'*inputs.+layer.biases
+    @match fun begin
+        ReLu => return relu.(z)
+        Sigmoid => return sigmoid.(z)
+    end
+end
+
+function evaluate(results::Float32, expectedResults::Float32)
+    return sum((results - expectedResults).^2)
+end
+
+function forwardpropagation(input, layers::Array{Layer}, fun::ActivationFunctions)
+    for layer in layers
+        input = forward(input,layer,fun)
+    return input
+end
+
+
+function backpropagation()
+    pass
+end
+
