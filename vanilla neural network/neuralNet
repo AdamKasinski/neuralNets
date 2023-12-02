@@ -5,12 +5,12 @@ struct ActivationFunctions
     Sigmoid
 end
 
-mutable struct Layer
+struct Layer
     weights::Matrix{Float32}
     biases::Array{Float32}
 end
 
-mutable struct Network
+struct Network
     layers::Array{Layer}
 end
 
