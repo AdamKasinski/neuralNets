@@ -10,30 +10,8 @@ struct Layer
     biases::Array{Float32}
 end
 
-struct Network
+struct Network #TODO add weights to Network structure - weights should not be in layers - it is not intuitive  
     layers::Array{Layer}
-end
-
-function sigmoid(x::Float32)
-    return 1/(1+ℯ^(-x))
-end
-
-function derivativeSigmoid(x::Float32)
-    return sigmoid(x)*(1*sigmoid(x))
-end
-
-function relu(x::Float32)
-    return max(0,x)
-end
-
-function calculateDeltaOutput(results,expectedResults)
-    errors::Array{Float32} = results - expectedResults
-    return errors.*derivativeSigmoid(errors)
-end
-
-function calculateDeltaHidden(currentDelta, weights,results)
-    error = currentDelta*weights
-    return error.*derivativeSigmoid(results)
 end
 
 function createLayer(neuronsInTheLayer,neuronsInPreviousLayer)
@@ -52,6 +30,28 @@ function createNetwork(numberOfLayers::Int,neuronsInLayers::Array{Int})
     return Network(layers)
 end
 
+function sigmoid(x::Float32)
+    return 1/(1+ℯ^(-x))
+end
+
+function derivativeSigmoid(x::Float32)
+    return x*(1-x)
+end
+
+function relu(x::Float32)
+    return max(0,x)
+end
+
+function calculateDeltaOutput(results,expectedResults)
+    errors::Array{Float32} = results - expectedResults
+    return errors.*derivativeSigmoid(results)
+end
+
+function calculateDeltaHidden(currentDelta, weights,results)
+    error = currentDelta*weights
+    return error.*derivativeSigmoid(results)
+end
+
 function forward(inputs::Array{Float32}, layer::Layer ,fun::ActivationFunctions) 
     z = layer.weights'*inputs.+layer.biases
     d = 0
@@ -60,7 +60,6 @@ function forward(inputs::Array{Float32}, layer::Layer ,fun::ActivationFunctions)
         $Sigmoid => sigmoid.(z)
     end
 end
-
 
 function evaluate(results::Array{Float32}, expectedResults::Array{Float32})
     return sum((results - expectedResults).^2)
@@ -82,7 +81,7 @@ function backpropagation(network::Network,results::Array{Float32}, expected_resu
     push!(δ,calculateDeltaOutput(results[end], expected_results))
 
     for layerNumber in reverse(2:length(network.layers))
-        delta = calculateDeltaHidden(δ[-1],network.layers[layerNumber].weights,results[layerNumber])
+        delta = calculateDeltaHidden(δ[-1],network.layers[layerNumber+1].weights,results[layerNumber])
         push!(δ,delta)
     end
     
