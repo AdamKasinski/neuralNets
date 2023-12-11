@@ -5,7 +5,6 @@ using Match, Statistics, Distributions, Random
     Sigmoid
 end
 
-
 struct Layer
     weights::Matrix{Float32}
     biases::Array{Float32}
@@ -19,8 +18,22 @@ function sigmoid(x::Float32)
     return 1/(1+ℯ^(-x))
 end
 
+function derivativeSigmoid(x::Float32)
+    return sigmoid(x)*(1*sigmoid(x))
+end
+
 function relu(x::Float32)
     return max(0,x)
+end
+
+function calculateDeltaOutput(results,expectedResults)
+    errors::Array{Float32} = results - expectedResults
+    return errors.*derivativeSigmoid(errors)
+end
+
+function calculateDeltaHidden(currentDelta, weights,results)
+    error = currentDelta*weights
+    return error.*derivativeSigmoid(results)
 end
 
 function createLayer(neuronsInTheLayer,neuronsInPreviousLayer)
@@ -48,18 +61,37 @@ function forward(inputs::Array{Float32}, layer::Layer ,fun::ActivationFunctions)
     end
 end
 
-function evaluate(results::Float32, expectedResults::Float32)
+
+function evaluate(results::Array{Float32}, expectedResults::Array{Float32})
     return sum((results - expectedResults).^2)
 end
 
-function forwardpropagation(input, network::Network, fun::ActivationFunctions)
+function forwardPropagation(input, network::Network, fun::ActivationFunctions)
+    inputs = []
     for layer in network.layers
         input = forward(input,layer,fun)
+        push!(inputs,input)
     end
-    return input
+    return inputs
 end
 
 
-function backpropagation()
-    pass
+function backpropagation(network::Network,results::Array{Float32}, expected_results::Array{Float32})
+    
+    δ::Array{Float32} = []
+    push!(δ,calculateDeltaOutput(results[end], expected_results))
+
+    for layerNumber in reverse(2:length(network.layers))
+        delta = calculateDeltaHidden(δ[-1],network.layers[layerNumber].weights,results[layerNumber])
+        push!(δ,delta)
+    end
+    
+    return reverse(δ)
+end
+
+function updateWeights(network,learningRate, δ, results)
+    for layerNumber in 1:length(network.layers)
+        network.layers[layerNumber].weights += learningRate*(results[layerNumber]'*δ[layerNumber])
+        network.layers[layerNumber].biases += learningRate*sum(δ[layerNumber])
+    end
 end
