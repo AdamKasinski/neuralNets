@@ -96,5 +96,5 @@ function updateWeights(network,learningRate, δ, results)
 end
 
 function trainNet(network, input)
-    inputs = forwardPropagation(input,network,ActivationFunctions.Sigmoid)
+    inputs::Matrix{Float32} = forwardPropagation(input,network,ActivationFunctions.Sigmoid)
 end
