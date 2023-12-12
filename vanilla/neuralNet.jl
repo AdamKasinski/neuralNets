@@ -94,3 +94,7 @@ function updateWeights(network,learningRate, δ, results)
         network.layers[layerNumber].biases += learningRate*sum(δ[layerNumber])
     end
 end
+
+function trainNet(network, input)
+    inputs = forwardPropagation(input,network,ActivationFunctions.Sigmoid)
+end
